@@ -1,0 +1,91 @@
+<! DOCTYPE html>
+<html<html<html lang="ko">lang="ko">lang="ko">
+<head>
+  <meta charset="UTF-8"><meta charset="UTF-8"> <meta charset="UTF-8">
+  <title>반응 속도 테스트</title><title>반응 속도 테스트</title> <title>반응 속도 테스트</title>
+  <style><스타일> <style>
+ 본문 { body {
+ 폰트-패밀리: 아리알, 산세리프 font-family: Arial, sans-serif;
+ 텍스트 정렬: 센터 text-align: center;
+ 패딩탑: 100px; 패딩탑:  100;
+  배경 색상: #f4f4f4; 배경색: #f4f4f4;f4f4f4;
+      }  
+
+       #  
+ 폭: 300px; 폭: 300px;
+ 높이: 200px; 높이: 200px;
+   마진: 0 오토; margin: 0 auto;마진: 0 오토;  
+ 배경: #색; 배경색: #색;
+   디스플레이: 플렉스; display: flex;디스플레이: 플렉스;  
+   정렬 항목: 중앙; align-items: center;정렬 항목: 중앙;  
+   정당화 내용: 중심 justify-content: center;정당화 내용: 중심  
+   커서: 포인터; cursor: pointer;커서: 포인터;  
+   폰트 크기: 20px; font-size: 20px;폰트 크기: 20px;  
+    국경 반경: 10px; border-radius: 10px;국경 반경: 10px;  국경 반경: 10px; border-radius: 10px; 
+   사용자 선택: 없음  사용자 선택: 없음 user-select: none;사용자 선택: 없음  
+ 전환: 배경 0.3; 전환: 배경 색상 0.3;
+      } } 
+
+       #  
+ 마진: 30px; 마진-톱: 30px;
+   폰트 크기: 24px;  폰트 크기: 24px; font-size: 24px;폰트 크기: 24px;  
+      } } 
+
+ # startBtn { startBtn { 
+ 마진: 30px; 마진-톱: 30px;
+ 패딩: 10px 20px; 패딩: 10px 20px;
+   폰트 크기: 18px;  폰트 크기: 18px; font-size: 18px;폰트 크기: 18px;  
+   커서: 포인터;  커서: 포인터; cursor: pointer;커서: 포인터;  
+      }  
+  </style></style> </style>
+</헤드>
+<body>
+
+  <h1>반응 속도 테스트</h1><h1>반응 속도 테스트</h1> <h1>반응 속도 테스트</h1>
+  <div id="gameBox">여기를 클릭</div><div id="gameBox">여기를 클릭</div> <div id="gameBox">여기를 클릭</div>
+  <div id="result">시작하려면 아래 버튼을 누르세요</div><div id="result">시작하려면 아래 버튼을 누르세요</div> <div id="result">시작하려면 아래 버튼을 누르세요</div>
+  <button id="startBtn">START</button><button id="startBtn">START</button> <button id="startBtn">START</button>
+
+  <script><스크립트> <script>
+ const gameBox = document.getElementById("gameBox")); const gameBox = document.getElementById("gameBox");
+ const result = document.getElementById("result")); const result = document.getElementById("result");
+ const startBtn = document.getElementById("startBtn")); const startBtn = document.getElementById("startBtn");
+
+ let startTime = 0; let startTime = 0;
+ let timeoutId = null; let timeoutId = null;
+ let isReady = false; let isReady = false;
+
+ startBtn.onclick = () => { startBtn.onclick = () => {
+        result.textContent = "기다리세요..."; result.textContent = "기다리세요..."; result.textContent = "기다리세요..."; 
+ gameBox.style.backgroundColor = "#dd"; gameBox.style.backgroundColor = "#ddd";
+ isReady = false; isReady = false;
+
+      const randomDelay = Math.floor(Math.random() * 3000) + 2000; // 2~5초
+
+ timeoutId = setTimeout(() => { timeoutId = setTimeout(() => {
+ gameBox.style.backgroundColor = "#4CAF50"; gameBox.style.backgroundColor = "#4CAF50";
+ result.textContent = "C 지금 클릭!"; result.textContent = "지금 클릭!";
+ 시작시간 = Date.now(); startTime = Date.now();
+ isReady = true; isReady = true;
+ }, randomDelay; }, randomDelay);
+     }; };
+
+ 게임박스.온클릭 = () => { gameBox.onclick = () => {
+ if (timeoutId && !isReady) { if (timeoutId && !isReady) {
+ clearTimeout(timeoutId); clearTimeout(timeoutId);
+          result.textContent = "성급했어요! 다시 시작해보세요."; result.textContent = "성급했어요! 다시 시작해보세요."; result.textContent = "성급했어요! 다시 시작해보세요."; 
+ gameBox.style.backgroundColor = "#ff4c4c"; gameBox.style.backgroundColor = "#ff4c4c";
+ 반환; return;
+       } }
+
+ if (isReady) { if (isReady) {
+ const reactionTime = Date.now() - startTime; const reactionTime = Date.now() - startTime;
+ result.textContent = "반응 속도: ${ReactionTime}ms"; result.textContent =   `반응 속도:    ${reactionTime}ms`;
+ gameBox.style.backgroundColor = "#dd"; gameBox.style.backgroundColor = "#ddd";
+ isReady = false; isReady = false;
+       } }
+     }; };
+  </script></script> </script>
+
+</본체>
+</HTML>
