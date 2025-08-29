@@ -2,166 +2,93 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>숫자 맞추기 게임 - Easy / Hard</title>
+  <title>영단어 ↔ 뜻 검색기</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      padding-top: 50px;
-      background-color: #f0f8ff;
-      transition: background-color 0.3s;
+      padding: 50px;
+      background-color: #f5f5f5;
     }
-
-    button {
-      padding: 10px 20px;
+    input {
+      padding: 10px;
+      width: 300px;
       font-size: 18px;
-      margin: 10px 5px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      margin: 5px;
       cursor: pointer;
     }
-
-    #gameArea {
-      display: none;
+    #results {
       margin-top: 30px;
-    }
-
-    input[type="number"] {
-      padding: 10px;
       font-size: 18px;
-      width: 100px;
     }
-
-    #result, #info, #score, #timer {
-      margin-top: 15px;
-      font-size: 20px;
-    }
-
-    .success {
-      background-color: #d4edda !important;
-    }
-
-    .fail {
-      background-color: #f8d7da !important;
+    ul {
+      list-style-type: none;
+      padding: 0;
     }
   </style>
 </head>
 <body>
 
-  <h1>숫자 맞추기 게임</h1>
-  <p>난이도를 선택하세요:</p>
-  <button onclick="startGame('easy')">Easy</button>
-  <button onclick="startGame('hard')">Hard</button>
+  <h1>🔍 영단어 ↔ 뜻 검색기</h1>
 
-  <div id="gameArea">
-    <p id="rangeInfo"></p>
-    <input type="number" id="userInput" />
-    <button onclick="checkGuess()">확인</button>
-    <button onclick="restartGame()">다시 시작</button>
+  <input type="text" id="input" placeholder="뜻 또는 영단어를 입력하세요" />
+  <br>
+  <button onclick="searchByWord()">영단어 → 뜻</button>
+  <button onclick="searchByMeaning()">뜻 → 영단어</button>
 
-    <div id="result"></div>
-    <div id="info"></div>
-    <div id="score"></div>
-    <div id="timer"></div>
-  </div>
+  <div id="results"></div>
 
   <script>
-    let targetNumber = 0;
-    let attempts = 0;
-    let maxAttempts = Infinity;
-    let maxNumber = 50;
-    let currentMode = 'easy';
-    let gameOver = false;
-    let startTime = 0;
-    let timerInterval = null;
+    // 기본 데이터 (예시)
+    const dictionary = {
+      "apple": "사과",
+      "banana": "바나나",
+      "happy": "행복한",
+      "sad": "슬픈",
+      "fast": "빠른",
+      "slow": "느린",
+      "cat": "고양이",
+      "dog": "개",
+      "computer": "컴퓨터",
+      "book": "책"
+    };
 
-    function startGame(mode) {
-      currentMode = mode;
-      gameOver = false;
-      attempts = 0;
+    function searchByWord() {
+      const input = document.getElementById("input").value.trim().toLowerCase();
+      const resultDiv = document.getElementById("results");
 
-      if (mode === 'easy') {
-        maxNumber = 50;
-        maxAttempts = Infinity;
-        document.getElementById("rangeInfo").textContent = "1부터 50 사이 숫자를 맞춰보세요!";
-      } else {
-        maxNumber = 100;
-        maxAttempts = 5;
-        document.getElementById("rangeInfo").textContent = "1부터 100 사이 숫자를 5번 안에 맞춰보세요!";
-      }
-
-      targetNumber = Math.floor(Math.random() * maxNumber) + 1;
-      document.getElementById("userInput").value = "";
-      document.getElementById("userInput").disabled = false;
-      document.getElementById("result").textContent = "";
-      document.getElementById("info").textContent = "시도 횟수: 0";
-      document.getElementById("score").textContent = "";
-      document.getElementById("timer").textContent = "";
-      document.body.className = "";
-      document.getElementById("gameArea").style.display = "block";
-      document.getElementById("userInput").focus();
-
-      // 타이머 시작
-      clearInterval(timerInterval);
-      startTime = Date.now();
-      timerInterval = setInterval(updateTimer, 1000);
-    }
-
-    function updateTimer() {
-      const now = Date.now();
-      const elapsed = Math.floor((now - startTime) / 1000);
-      document.getElementById("timer").textContent = `⏱️ 경과 시간: ${elapsed}초`;
-    }
-
-    function checkGuess() {
-      if (gameOver) return;
-
-      const input = document.getElementById("userInput").value;
-      const guess = parseInt(input);
-
-      if (isNaN(guess) || guess < 1 || guess > maxNumber) {
-        document.getElementById("result").textContent = `⚠️ 1부터 ${maxNumber} 사이 숫자를 입력하세요.`;
+      if (input === "") {
+        resultDiv.innerHTML = "⚠️ 단어를 입력하세요.";
         return;
       }
 
-      attempts++;
-      document.getElementById("info").textContent = `시도 횟수: ${attempts}`;
-
-      if (guess === targetNumber) {
-        document.getElementById("result").textContent = `🎉 정답입니다!`;
-        document.body.className = "success";
-        endGame(true);
-      } else if (guess < targetNumber) {
-        document.getElementById("result").textContent = "📉 더 큰 숫자입니다.";
+      if (dictionary[input]) {
+        resultDiv.innerHTML = `✅ <strong>${input}</strong> 의 뜻은 <strong>"${dictionary[input]}"</strong> 입니다.`;
       } else {
-        document.getElementById("result").textContent = "📈 더 작은 숫자입니다.";
-      }
-
-      if (currentMode === 'hard' && attempts >= maxAttempts && guess !== targetNumber) {
-        document.getElementById("result").textContent = `❌ 기회를 모두 사용했습니다. 정답은 ${targetNumber}였습니다.`;
-        document.body.className = "fail";
-        endGame(false);
+        resultDiv.innerHTML = `❌ 사전에 "${input}" 은(는) 등록되어 있지 않습니다.`;
       }
     }
 
-    function endGame(isCorrect) {
-      gameOver = true;
-      document.getElementById("userInput").disabled = true;
-      clearInterval(timerInterval);
+    function searchByMeaning() {
+      const input = document.getElementById("input").value.trim();
+      const resultDiv = document.getElementById("results");
 
-      // 점수 계산
-      let score = 0;
-      if (currentMode === 'easy') {
-        score = Math.max(0, 100 - (attempts - 1) * 10);
-      } else {
-        score = isCorrect ? (maxAttempts - attempts + 1) * 20 : 0;
+      if (input === "") {
+        resultDiv.innerHTML = "⚠️ 뜻을 입력하세요.";
+        return;
       }
 
-      const timeTaken = Math.floor((Date.now() - startTime) / 1000);
-      document.getElementById("score").textContent = `🧠 점수: ${score}점`;
-      document.getElementById("timer").textContent += ` / 총 시간: ${timeTaken}초`;
-    }
+      const matchingWords = Object.keys(dictionary).filter(word => dictionary[word] === input);
 
-    function restartGame() {
-      startGame(currentMode);
+      if (matchingWords.length > 0) {
+        resultDiv.innerHTML = `✅ 뜻이 "${input}"인 단어들:<br><ul>${matchingWords.map(w => `<li>${w}</li>`).join("")}</ul>`;
+      } else {
+        resultDiv.innerHTML = `❌ "${input}"에 해당하는 단어를 찾을 수 없습니다.`;
+      }
     }
   </script>
 
