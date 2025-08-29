@@ -2,13 +2,26 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>숫자 맞추기 게임</title>
+  <title>숫자 맞추기 게임 - Easy / Hard</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      padding-top: 100px;
+      padding-top: 50px;
       background-color: #f0f8ff;
+      transition: background-color 0.3s;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin: 10px 5px;
+      cursor: pointer;
+    }
+
+    #gameArea {
+      display: none;
+      margin-top: 30px;
     }
 
     input[type="number"] {
@@ -17,60 +30,138 @@
       width: 100px;
     }
 
-    button {
-      padding: 10px 20px;
-      font-size: 18px;
-      margin-left: 10px;
-      cursor: pointer;
+    #result, #info, #score, #timer {
+      margin-top: 15px;
+      font-size: 20px;
     }
 
-    #result {
-      margin-top: 30px;
-      font-size: 24px;
+    .success {
+      background-color: #d4edda !important;
     }
 
-    #attempts {
-      margin-top: 10px;
-      color: #666;
+    .fail {
+      background-color: #f8d7da !important;
     }
   </style>
 </head>
 <body>
 
   <h1>숫자 맞추기 게임</h1>
-  <p>1부터 100 사이의 숫자를 맞춰보세요!</p>
+  <p>난이도를 선택하세요:</p>
+  <button onclick="startGame('easy')">Easy</button>
+  <button onclick="startGame('hard')">Hard</button>
 
-  <input type="number" id="userInput" min="1" max="100" />
-  <button onclick="checkGuess()">확인</button>
+  <div id="gameArea">
+    <p id="rangeInfo"></p>
+    <input type="number" id="userInput" />
+    <button onclick="checkGuess()">확인</button>
+    <button onclick="restartGame()">다시 시작</button>
 
-  <div id="result"></div>
-  <div id="attempts">시도 횟수: 0</div>
+    <div id="result"></div>
+    <div id="info"></div>
+    <div id="score"></div>
+    <div id="timer"></div>
+  </div>
 
   <script>
-    let targetNumber = Math.floor(Math.random() * 100) + 1;
+    let targetNumber = 0;
     let attempts = 0;
+    let maxAttempts = Infinity;
+    let maxNumber = 50;
+    let currentMode = 'easy';
+    let gameOver = false;
+    let startTime = 0;
+    let timerInterval = null;
+
+    function startGame(mode) {
+      currentMode = mode;
+      gameOver = false;
+      attempts = 0;
+
+      if (mode === 'easy') {
+        maxNumber = 50;
+        maxAttempts = Infinity;
+        document.getElementById("rangeInfo").textContent = "1부터 50 사이 숫자를 맞춰보세요!";
+      } else {
+        maxNumber = 100;
+        maxAttempts = 5;
+        document.getElementById("rangeInfo").textContent = "1부터 100 사이 숫자를 5번 안에 맞춰보세요!";
+      }
+
+      targetNumber = Math.floor(Math.random() * maxNumber) + 1;
+      document.getElementById("userInput").value = "";
+      document.getElementById("userInput").disabled = false;
+      document.getElementById("result").textContent = "";
+      document.getElementById("info").textContent = "시도 횟수: 0";
+      document.getElementById("score").textContent = "";
+      document.getElementById("timer").textContent = "";
+      document.body.className = "";
+      document.getElementById("gameArea").style.display = "block";
+      document.getElementById("userInput").focus();
+
+      // 타이머 시작
+      clearInterval(timerInterval);
+      startTime = Date.now();
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      const now = Date.now();
+      const elapsed = Math.floor((now - startTime) / 1000);
+      document.getElementById("timer").textContent = `⏱️ 경과 시간: ${elapsed}초`;
+    }
 
     function checkGuess() {
+      if (gameOver) return;
+
       const input = document.getElementById("userInput").value;
       const guess = parseInt(input);
-      const result = document.getElementById("result");
-      const attemptsDisplay = document.getElementById("attempts");
 
-      if (isNaN(guess) || guess < 1 || guess > 100) {
-        result.textContent = "1부터 100 사이의 숫자를 입력해주세요.";
+      if (isNaN(guess) || guess < 1 || guess > maxNumber) {
+        document.getElementById("result").textContent = `⚠️ 1부터 ${maxNumber} 사이 숫자를 입력하세요.`;
         return;
       }
 
       attempts++;
-      attemptsDisplay.textContent = `시도 횟수: ${attempts}`;
+      document.getElementById("info").textContent = `시도 횟수: ${attempts}`;
 
       if (guess === targetNumber) {
-        result.textContent = `🎉 정답입니다! ${attempts}번 만에 맞췄어요!`;
+        document.getElementById("result").textContent = `🎉 정답입니다!`;
+        document.body.className = "success";
+        endGame(true);
       } else if (guess < targetNumber) {
-        result.textContent = "📉 더 큰 숫자입니다.";
+        document.getElementById("result").textContent = "📉 더 큰 숫자입니다.";
       } else {
-        result.textContent = "📈 더 작은 숫자입니다.";
+        document.getElementById("result").textContent = "📈 더 작은 숫자입니다.";
       }
+
+      if (currentMode === 'hard' && attempts >= maxAttempts && guess !== targetNumber) {
+        document.getElementById("result").textContent = `❌ 기회를 모두 사용했습니다. 정답은 ${targetNumber}였습니다.`;
+        document.body.className = "fail";
+        endGame(false);
+      }
+    }
+
+    function endGame(isCorrect) {
+      gameOver = true;
+      document.getElementById("userInput").disabled = true;
+      clearInterval(timerInterval);
+
+      // 점수 계산
+      let score = 0;
+      if (currentMode === 'easy') {
+        score = Math.max(0, 100 - (attempts - 1) * 10);
+      } else {
+        score = isCorrect ? (maxAttempts - attempts + 1) * 20 : 0;
+      }
+
+      const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+      document.getElementById("score").textContent = `🧠 점수: ${score}점`;
+      document.getElementById("timer").textContent += ` / 총 시간: ${timeTaken}초`;
+    }
+
+    function restartGame() {
+      startGame(currentMode);
     }
   </script>
 
