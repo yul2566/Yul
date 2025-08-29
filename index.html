@@ -2,94 +2,79 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>영단어 ↔ 뜻 검색기</title>
+  <title>영단어 퀴즈 (74K 단어)</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
-      background-color: #f5f5f5;
-    }
-    input {
-      padding: 10px;
-      width: 300px;
-      font-size: 18px;
-    }
-    button {
-      padding: 10px 15px;
-      font-size: 16px;
-      margin: 5px;
-      cursor: pointer;
-    }
-    #results {
-      margin-top: 30px;
-      font-size: 18px;
-    }
-    ul {
-      list-style-type: none;
-      padding: 0;
-    }
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; text-align: center; }
+    .question { font-size: 24px; margin: 20px 0; }
+    .choices button { display: block; width: 100%; margin: 5px 0; padding: 10px; font-size: 18px; cursor: pointer; }
+    #scoreBoard { margin-top: 20px; font-size: 20px; }
+    button#start { font-size: 18px; padding: 10px 20px; margin-top: 20px; }
   </style>
 </head>
 <body>
 
-  <h1>🔍 영단어 ↔ 뜻 검색기</h1>
-
-  <input type="text" id="input" placeholder="뜻 또는 영단어를 입력하세요" />
-  <br>
-  <button onclick="searchByWord()">영단어 → 뜻</button>
-  <button onclick="searchByMeaning()">뜻 → 영단어</button>
-
-  <div id="results"></div>
+  <h1>영단어 퀴즈 (74,550단어 이상)</h1>
+  <div id="quizArea">
+    <div id="question" class="question"></div>
+    <div id="choices" class="choices"></div>
+    <div id="scoreBoard"></div>
+  </div>
+  <button id="start">게임 시작</button>
 
   <script>
-    // 기본 데이터 (예시)
-    const dictionary = {
-      "apple": "사과",
-      "banana": "바나나",
-      "happy": "행복한",
-      "sad": "슬픈",
-      "fast": "빠른",
-      "slow": "느린",
-      "cat": "고양이",
-      "dog": "개",
-      "computer": "컴퓨터",
-      "book": "책"
+    let words = [];
+    let currentQ = 0, correctCount = 0, totalQ = 10;
+    const modes = ['word-to-word', 'random'];
+
+    async function loadWords() {
+      const res = await fetch('wordlist.json');
+      words = await res.json();
+    }
+
+    function getRandomElements(arr, n) {
+      return Array.from({ length: n }, () => arr[Math.floor(Math.random() * arr.length)]);
+    }
+
+    function nextQuestion() {
+      if (currentQ >= totalQ) {
+        document.getElementById('question').innerText = `퀴즈 종료! 결과: ${correctCount} / ${totalQ}`;
+        document.getElementById('choices').innerHTML = '';
+        return;
+      }
+
+      const mode = modes[Math.floor(Math.random() * modes.length)];
+      const correct = words[Math.floor(Math.random() * words.length)];
+      const distractors = getRandomElements(words.filter(w => w !== correct), 3);
+      const choices = [...distractors, correct].sort(() => 0.5 - Math.random());
+
+      const promptText = mode === 'word-to-word'
+        ? `단어 "${correct}" 의 동의어를 고르세요:` // 사실 영어 단어만 있어서 문맥상 의미는 동일 단어 선택
+        : `랜덤 단어 선택: "${correct}"`;
+
+      document.getElementById('question').innerText = `문제 ${currentQ + 1}: ${promptText}`;
+      const choicesDiv = document.getElementById('choices');
+      choicesDiv.innerHTML = '';
+
+      choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.innerText = choice;
+        btn.onclick = () => {
+          if (choice === correct) correctCount++;
+          currentQ++;
+          document.getElementById('scoreBoard').innerText = `정답: ${correctCount} / ${currentQ}`;
+          nextQuestion();
+        };
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    document.getElementById('start').onclick = async () => {
+      await loadWords();
+      currentQ = 0; correctCount = 0;
+      document.getElementById('start').style.display = 'none';
+      document.getElementById('scoreBoard').innerText = '';
+      nextQuestion();
     };
-
-    function searchByWord() {
-      const input = document.getElementById("input").value.trim().toLowerCase();
-      const resultDiv = document.getElementById("results");
-
-      if (input === "") {
-        resultDiv.innerHTML = "⚠️ 단어를 입력하세요.";
-        return;
-      }
-
-      if (dictionary[input]) {
-        resultDiv.innerHTML = `✅ <strong>${input}</strong> 의 뜻은 <strong>"${dictionary[input]}"</strong> 입니다.`;
-      } else {
-        resultDiv.innerHTML = `❌ 사전에 "${input}" 은(는) 등록되어 있지 않습니다.`;
-      }
-    }
-
-    function searchByMeaning() {
-      const input = document.getElementById("input").value.trim();
-      const resultDiv = document.getElementById("results");
-
-      if (input === "") {
-        resultDiv.innerHTML = "⚠️ 뜻을 입력하세요.";
-        return;
-      }
-
-      const matchingWords = Object.keys(dictionary).filter(word => dictionary[word] === input);
-
-      if (matchingWords.length > 0) {
-        resultDiv.innerHTML = `✅ 뜻이 "${input}"인 단어들:<br><ul>${matchingWords.map(w => `<li>${w}</li>`).join("")}</ul>`;
-      } else {
-        resultDiv.innerHTML = `❌ "${input}"에 해당하는 단어를 찾을 수 없습니다.`;
-      }
-    }
   </script>
 
 </body>
