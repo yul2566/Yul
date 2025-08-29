@@ -2,75 +2,48 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<title>영단어 뜻 퀴즈 (1000개 확장판)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>영단어 퀴즈</title>
 <style>
-  body { font-family: Arial, sans-serif; max-width: 600px; margin: 30px auto; text-align: center; }
-  select, button { font-size: 16px; padding: 8px 12px; margin: 10px 5px; }
-  .question { font-size: 22px; margin: 20px 0; }
-  .choices button {
-    display: block; width: 100%; padding: 12px; margin: 6px 0; font-size: 18px; cursor: pointer;
-  }
-  #scoreBoard { margin-top: 20px; font-size: 20px; }
+  body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+  button { margin: 5px; padding: 10px 20px; font-size: 16px; }
+  #question { font-size: 24px; margin: 20px 0; }
+  #answer { margin-top: 10px; font-size: 20px; color: green; }
+  #result { margin-top: 10px; font-weight: bold; }
 </style>
 </head>
 <body>
+<h1>영단어 퀴즈</h1>
 
-<h1>영단어 & 뜻 퀴즈 (1000개 확장판)</h1>
-
-<label>난이도 선택:
-  <select id="level">
-    <option value="easy">쉬움 (짧은 단어)</option>
-    <option value="normal" selected>보통</option>
-    <option value="hard">어려움 (긴 단어)</option>
+<div>
+  <label>난이도: </label>
+  <select id="difficulty">
+    <option value="easy">Easy (50개)</option>
+    <option value="hard">Hard (전체)</option>
   </select>
-</label>
-<br />
+</div>
 
-<label>문제 유형 선택:
-  <select id="quizType">
-    <option value="wordToMeaning" selected>영단어 → 뜻 고르기</option>
-    <option value="meaningToWord">뜻 → 영단어 고르기</option>
+<div style="margin-top:10px;">
+  <label>문제 유형: </label>
+  <select id="mode">
+    <option value="word">단어 → 뜻</option>
+    <option value="meaning">뜻 → 단어</option>
   </select>
-</label>
-<br />
+</div>
 
-<button id="startBtn">게임 시작</button>
+<button id="startBtn">시작하기</button>
 
 <div id="quizArea" style="display:none;">
-  <div id="question" class="question"></div>
-  <div id="choices"></div>
-  <div id="scoreBoard"></div>
+  <div id="question"></div>
+  <input type="text" id="userAnswer" autocomplete="off" />
+  <button id="submitBtn">제출</button>
+  <div id="result"></div>
+  <button id="nextBtn" style="display:none;">다음 문제</button>
 </div>
 
 <script>
-  // 1000개 단어+뜻 배열 일부 예시 + 나머지는 주석처리 후 압축
-  const wordList = [
-    ["apple", "사과"],
-    ["banana", "바나나"],
-    ["cat", "고양이"],
-    ["dog", "개"],
-    ["elephant", "코끼리"],
-    ["fish", "물고기"],
-    ["grape", "포도"],
-    ["house", "집"],
-    ["ice", "얼음"],
-    ["juice", "주스"],
-    ["kite", "연"],
-    ["lion", "사자"],
-    ["monkey", "원숭이"],
-    ["notebook", "공책"],
-    ["orange", "오렌지"],
-    ["pencil", "연필"],
-    ["queen", "여왕"],
-    ["rabbit", "토끼"],
-    ["sun", "태양"],
-    ["tiger", "호랑이"],
-    ["umbrella", "우산"],
-    ["violin", "바이올린"],
-    ["water", "물"],
-    ["xylophone", "실로폰"],
-    ["yogurt", "요구르트"],
-    ["zebra", "얼룩말"],
+// 단어 리스트 (easy 50개 + hard 전체 100개, easy는 hard의 일부)
+const easyWords = [
   ["apple", "사과"],
   ["banana", "바나나"],
   ["cat", "고양이"],
@@ -118,182 +91,149 @@
   ["van", "밴"],
   ["window", "창문"],
   ["yard", "마당"],
-  ["zipper", "지퍼"],
-  ["actor", "배우"],
-  ["ball", "공"],
-  ["cloud", "구름"],
-  ["door", "문"],
-  ["earth", "지구"],
-  ["farm", "농장"],
-  ["game", "게임"],
-  ["hat", "모자"],
-  ["iron", "다리미"],
-  ["jail", "감옥"],
-  ["king", "왕"],
-  ["lamp", "램프"],
-  ["map", "지도"],
-  ["nest", "둥지"],
-  ["owl", "부엉이"],
-  ["pig", "돼지"],
-  ["quiz", "퀴즈"],
-  ["rose", "장미"],
-  ["ship", "배"],
-  ["tree", "나무"],
-  ["unit", "단위"],
-  ["van", "밴"],
-  ["wall", "벽"],
-  ["xenon", "제논 (원소)"],
-  ["yarn", "실"],
-  ["zinc", "아연"],
-  ["bird", "새"],
-  ["car", "자동차"],
-  ["desk", "책상"],
-  ["egg", "달걀"],
-  ["fork", "포크"],
-  ["girl", "소녀"],
-  ["hill", "언덕"],
-  ["ink", "잉크"],
-  ["jug", "항아리"],
-  ["kite", "연"],
-  ["leaf", "잎"],
-  ["moon", "달"],
-  ["net", "그물"],
-  ["owl", "부엉이"],
-  ["pen", "펜"],
-  ["queen", "여왕"],
-  ["rat", "쥐"],
-  ["sun", "태양"],
-  ["top", "꼭대기"],
-  ["urn", "항아리"],
-  ["vet", "수의사"],
-  ["web", "거미줄"],
-  ["yak", "야크"],
-  ["zebra", "얼룩말"],
-  ["angel", "천사"],
-  ["boy", "소년"],
-  ["cake", "케이크"],
-  ["day", "하루"],
-  ["ear", "귀"],
-  ["fan", "선풍기"],
-  ["girl", "소녀"],
-  ["hat", "모자"],
-  ["ink", "잉크"],
-  ["jug", "항아리"],
-  ["key", "열쇠"],
-  ["log", "통나무"],
-  ["man", "남자"],
-  ["net", "그물"],
-  ["oak", "참나무"],
-  ["pig", "돼지"],
-  ["queen", "여왕"],
-  ["rat", "쥐"],
-  ["sun", "태양"],
-  ["toe", "발가락"],
-  ["urn", "항아리"],
-  ["van", "밴"],
-  ["wax", "왁스"],
-  ["yak", "야크"],
-  ["zip", "지퍼"]
+  ["zipper", "지퍼"]
 ];
 
-  // 아래는 1000개 단어를 만드는 간단한 샘플 코드
-  // 실제로 이렇게 채워서 사용하세요:
-  /*
-  const fullWordList = [];
-  for(let i=0; i<1000; i++){
-    fullWordList.push([`word${i+1}`, `뜻${i+1}`]);
+const hardWords = easyWords.concat([
+  ["airplane", "비행기"],
+  ["bridge", "다리"],
+  ["candle", "촛불"],
+  ["desk", "책상"],
+  ["engine", "엔진"],
+  ["forest", "숲"],
+  ["grass", "풀"],
+  ["hill", "언덕"],
+  ["jungle", "정글"],
+  ["knife", "칼"],
+  ["mountain", "산"],
+  ["night", "밤"],
+  ["river", "강"],
+  ["school", "학교"],
+  ["unicorn", "유니콘"],
+  ["village", "마을"],
+  ["x-ray", "엑스레이"],
+  ["yacht", "요트"],
+  ["zoo", "동물원"],
+  ["angle", "각도"],
+  ["baby", "아기"],
+  ["dance", "춤"],
+  ["fire", "불"],
+  ["goat", "염소"],
+  ["idea", "아이디어"],
+  ["job", "직업"],
+  ["log", "통나무"],
+  ["nap", "낮잠"],
+  ["oak", "참나무"],
+  ["paw", "발"],
+  ["quill", "깃펜"],
+  ["rib", "갈비뼈"],
+  ["sap", "수액"],
+  ["tap", "꼭지"],
+  ["vat", "큰 통"],
+  ["wig", "가발"],
+  ["zap", "찌르다"]
+]);
+
+let wordList = [];
+let currentIndex = -1;
+let lastIndex = -1;
+
+const startBtn = document.getElementById("startBtn");
+const difficultySelect = document.getElementById("difficulty");
+const modeSelect = document.getElementById("mode");
+const quizArea = document.getElementById("quizArea");
+const questionDiv = document.getElementById("question");
+const userAnswerInput = document.getElementById("userAnswer");
+const submitBtn = document.getElementById("submitBtn");
+const resultDiv = document.getElementById("result");
+const nextBtn = document.getElementById("nextBtn");
+
+// 랜덤 인덱스 생성, 직전 인덱스와 중복 안되게
+function getRandomIndex() {
+  if(wordList.length <= 1) return 0; // 단어가 1개 이하일 때
+  let idx;
+  do {
+    idx = Math.floor(Math.random() * wordList.length);
+  } while(idx === lastIndex);
+  lastIndex = idx;
+  return idx;
+}
+
+function startQuiz() {
+  const difficulty = difficultySelect.value;
+  wordList = difficulty === "easy" ? easyWords : hardWords;
+
+  currentIndex = getRandomIndex();
+
+  quizArea.style.display = "block";
+  startBtn.style.display = "none";
+  resultDiv.textContent = "";
+  nextBtn.style.display = "none";
+  userAnswerInput.value = "";
+  userAnswerInput.focus();
+
+  showQuestion();
+}
+
+function showQuestion() {
+  const mode = modeSelect.value;
+  const [word, meaning] = wordList[currentIndex];
+  if(mode === "word") {
+    questionDiv.textContent = `영단어 뜻은? : ${word}`;
+  } else {
+    questionDiv.textContent = `뜻에 맞는 영단어는? : ${meaning}`;
   }
-  */
+  resultDiv.textContent = "";
+  userAnswerInput.value = "";
+  userAnswerInput.focus();
+  submitBtn.style.display = "inline-block";
+  nextBtn.style.display = "none";
+}
 
-  // 여기서는 편의상 위 wordList를 그대로 사용
+function checkAnswer() {
+  const mode = modeSelect.value;
+  const userAnswer = userAnswerInput.value.trim().toLowerCase();
+  const [word, meaning] = wordList[currentIndex];
 
-  let currentQ = 0;
-  const totalQ = 10;
-  let correctCount = 0;
-  let filteredWords = [];
-  let quizType = "wordToMeaning";
+  let correct;
+  if(mode === "word") {
+    correct = (userAnswer === meaning.toLowerCase());
+  } else {
+    correct = (userAnswer === word.toLowerCase());
+  }
 
-  const startBtn = document.getElementById("startBtn");
-  const levelSelect = document.getElementById("level");
-  const quizTypeSelect = document.getElementById("quizType");
-  const quizArea = document.getElementById("quizArea");
-  const questionEl = document.getElementById("question");
-  const choicesEl = document.getElementById("choices");
-  const scoreBoard = document.getElementById("scoreBoard");
-
-  function filterByLevel(level) {
-    if (level === "easy") {
-      return wordList.filter(([word]) => word.length <= 4);
-    } else if (level === "hard") {
-      return wordList.filter(([word]) => word.length >= 7);
+  if(correct) {
+    resultDiv.style.color = "green";
+    resultDiv.textContent = "정답입니다!";
+  } else {
+    resultDiv.style.color = "red";
+    if(mode === "word") {
+      resultDiv.textContent = `틀렸습니다. 정답: ${meaning}`;
     } else {
-      return wordList;
+      resultDiv.textContent = `틀렸습니다. 정답: ${word}`;
     }
   }
+  submitBtn.style.display = "none";
+  nextBtn.style.display = "inline-block";
+}
 
-  function getRandomOptions(correctItem, items, keyIndex, count = 3) {
-    const options = new Set();
-    while (options.size < count) {
-      const candidate = items[Math.floor(Math.random() * items.length)][keyIndex];
-      if (candidate !== correctItem[keyIndex]) options.add(candidate);
-    }
-    options.add(correctItem[keyIndex]);
-    return Array.from(options).sort(() => Math.random() - 0.5);
-  }
+function nextQuestion() {
+  currentIndex = getRandomIndex();
+  showQuestion();
+}
 
-  function showQuestion() {
-    if (currentQ >= totalQ) {
-      questionEl.textContent = `퀴즈 종료! 정답 ${correctCount} / ${totalQ}`;
-      choicesEl.innerHTML = "";
-      return;
-    }
-    const correctItem = filteredWords[Math.floor(Math.random() * filteredWords.length)];
-    currentQ++;
-
-    if (quizType === "wordToMeaning") {
-      questionEl.textContent = `Q${currentQ}: "${correctItem[0]}" 단어의 뜻은?`;
-      const options = getRandomOptions(correctItem, filteredWords, 1);
-      choicesEl.innerHTML = "";
-      options.forEach(option => {
-        const btn = document.createElement("button");
-        btn.textContent = option;
-        btn.onclick = () => {
-          if (option === correctItem[1]) correctCount++;
-          scoreBoard.textContent = `정답: ${correctCount} / ${currentQ}`;
-          showQuestion();
-        };
-        choicesEl.appendChild(btn);
-      });
-    } else {
-      questionEl.textContent = `Q${currentQ}: "${correctItem[1]}" 뜻을 가진 영어 단어는?`;
-      const options = getRandomOptions(correctItem, filteredWords, 0);
-      choicesEl.innerHTML = "";
-      options.forEach(option => {
-        const btn = document.createElement("button");
-        btn.textContent = option;
-        btn.onclick = () => {
-          if (option === correctItem[0]) correctCount++;
-          scoreBoard.textContent = `정답: ${correctCount} / ${currentQ}`;
-          showQuestion();
-        };
-        choicesEl.appendChild(btn);
-      });
+startBtn.addEventListener("click", startQuiz);
+submitBtn.addEventListener("click", checkAnswer);
+nextBtn.addEventListener("click", nextQuestion);
+userAnswerInput.addEventListener("keydown", (e) => {
+  if(e.key === "Enter") {
+    if(submitBtn.style.display !== "none") {
+      checkAnswer();
+    } else if(nextBtn.style.display !== "none") {
+      nextQuestion();
     }
   }
-
-  startBtn.onclick = () => {
-    quizType = quizTypeSelect.value;
-    filteredWords = filterByLevel(levelSelect.value);
-    if (filteredWords.length === 0) {
-      alert("선택한 난이도에 해당하는 단어가 없습니다!");
-      return;
-    }
-    currentQ = 0;
-    correctCount = 0;
-    scoreBoard.textContent = "";
-    quizArea.style.display = "block";
-    showQuestion();
-  };
+});
 </script>
 
 </body>
